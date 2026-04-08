@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automata Backend - Gerador de Backends</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .output {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 100px;
+            display: none;
+        }
+
+        .output.show {
+            display: block;
+        }
+
+        .output pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            color: #1565c0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Automata Backend</h1>
+            <p>Gerador automatizado de backends Node/Express</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <p><strong>Como usar:</strong> Cole o conteúdo do seu arquivo schema.prisma abaixo e clique em "Gerar Backend". O sistema criará automaticamente todos os controllers, services e rotas necessários.</p>
+            </div>
+
+            <div class="section">
+                <h2>Schema Prisma</h2>
+                <textarea id="schemaInput" placeholder="Cole aqui o conteúdo do seu schema.prisma..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="clearSchema()">Limpar</button>
+                <button class="btn-primary" onclick="generateBackend()">Gerar Backend</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Gerando backend...</p>
+            </div>
+
+            <div class="section" style="margin-top: 30px;">
+                <h2>Resultado</h2>
+                <div class="output" id="output">
+                    <pre id="outputContent"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function clearSchema() {
+            document.getElementById('schemaInput').value = '';
+            document.getElementById('output').classList.remove('show');
+        }
+
+        async function generateBackend() {
+            const schemaContent = document.getElementById('schemaInput').value.trim();
+            
+            if (!schemaContent) {
+                alert('Por favor, cole o conteúdo do schema.prisma');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const output = document.getElementById('output');
+            const outputContent = document.getElementById('outputContent');
+
+            loading.classList.add('show');
+            output.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        schemaContent,
+                        config: {
+                            generateAuth: true,
+                            generateMiddlewares: true
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Erro ao gerar backend');
+                }
+
+                outputContent.textContent = JSON.stringify(result, null, 2);
+                output.classList.add('show');
+            } catch (error) {
+                outputContent.textContent = `Erro: ${error.message}`;
+                output.classList.add('show');
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

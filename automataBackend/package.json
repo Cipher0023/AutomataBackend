@@ -1,0 +1,24 @@
+{
+  "name": "automata-backend",
+  "version": "1.0.0",
+  "description": "Gerador automatizado de backends Node/Express baseado em schemas Prisma",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "backend",
+    "generator",
+    "prisma",
+    "express",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
